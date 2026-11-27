@@ -37,7 +37,7 @@ final class CIMCSession: NSObject, NSWindowDelegate, WKNavigationDelegate, WKUID
                 CIMCLoginLimitObserver(session: self), contentWorld: .defaultClient, name: CIMCLoginLimitObserver.name
             )
             configuration.userContentController.addUserScript(CIMCLoginLimitObserver.script)
-            configuration.userContentController.addUserScript(KVMDebugPanel.script)
+            configuration.userContentController.addUserScript(CIMCDebugPanel.script)
 
             switch profile.route {
             case .direct:
@@ -445,10 +445,10 @@ private final class CIMCLoginLimitObserver: NSObject, WKScriptMessageHandler {
 }
 
 @MainActor
-enum KVMDebugPanel {
+enum CIMCDebugPanel {
     static let script = WKUserScript(
         source: """
-            if (location.pathname === "/html/kvmViewer.html") {
+            if (location.pathname === "/index.html" || location.pathname === "/html/kvmViewer.html") {
                 const selector = '#firebug.firebug #firebugToolbar a[title="Close the console"][onclick="console.close(); return false;"]';
                 const observer = new MutationObserver(closePanel);
                 function closePanel() {
