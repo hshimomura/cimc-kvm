@@ -2,7 +2,7 @@ import WebKit
 import XCTest
 @testable import CIMCKVM
 
-final class KVMDebugPanelTests: XCTestCase {
+final class CIMCDebugPanelTests: XCTestCase {
     @MainActor
     func testClosesOnlyTheDebugPanelWhenItAppearsInTheViewer() async throws {
         let webView = await loadPage(path: "/html/kvmViewer.html")
@@ -16,8 +16,23 @@ final class KVMDebugPanelTests: XCTestCase {
     }
 
     @MainActor
-    func testLeavesManagementPageAlone() async throws {
+    func testClosesManagementDebugPanelAndKeepsHardwareAlertsVisible() async throws {
         let webView = await loadPage(path: "/index.html")
+        let closed = try await showPanel(in: webView)
+        XCTAssertTrue(closed)
+
+        let hardwareStatus = try await webView.evaluateJavaScript("""
+            (() => {
+                const status = document.getElementById('hardware-status');
+                return status.getClientRects().length > 0 ? status.innerText : null;
+            })()
+            """)
+        XCTAssertEqual(hardwareStatus as? String, "Power Supplies: Fault")
+    }
+
+    @MainActor
+    func testLeavesLoginPageAlone() async throws {
+        let webView = await loadPage(path: "/login.html")
         let closed = try await showPanel(in: webView)
         XCTAssertFalse(closed)
     }
@@ -26,8 +41,8 @@ final class KVMDebugPanelTests: XCTestCase {
     private func loadPage(path: String) async -> WKWebView {
         let configuration = WKWebViewConfiguration()
         configuration.websiteDataStore = .nonPersistent()
-        configuration.userContentController.addUserScript(KVMDebugPanel.script)
-        configuration.setURLSchemeHandler(ViewerFixture(), forURLScheme: "fixture")
+        configuration.userContentController.addUserScript(CIMCDebugPanel.script)
+        configuration.setURLSchemeHandler(CIMCPageFixture(), forURLScheme: "fixture")
         let webView = WKWebView(frame: .zero, configuration: configuration)
         let finished = expectation(description: "Loaded fixture")
         let navigation = NavigationObserver(finished: finished)
@@ -61,10 +76,11 @@ private final class NavigationObserver: NSObject, WKNavigationDelegate {
     }
 }
 
-private final class ViewerFixture: NSObject, WKURLSchemeHandler {
+private final class CIMCPageFixture: NSObject, WKURLSchemeHandler {
     private static let html = """
         <!doctype html>
         <a title="Close the console" onclick="console.close(); return false;">Close</a>
+        <p id="hardware-status">Power Supplies: Fault</p>
         <script>
             window.closeCalls = 0;
             console.close = () => {

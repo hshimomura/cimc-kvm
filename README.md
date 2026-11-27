@@ -25,7 +25,9 @@ The host list starts empty on a fresh installation. Click the **+** button to ad
 | Ignore certificate errors | Off by default. When enabled, the exception applies to the selected CIMC host on HTTPS ports 443 and 2068. |
 | Show CIMC management after login | Off by default. The app opens the KVM viewer after CIMC login when the firmware exposes a launch button it recognizes. |
 
-Enter your CIMC password on the login page. If the management page remains visible, use **Launch vKVM**. Some CIMC versions show a vKVM certificate confirmation page before opening the viewer. Follow the link to the viewer once the certificate is accepted. If the viewer displays a Dojo debug panel, the app closes it automatically.
+Enter your CIMC password on the login page. If the management page remains visible, use **Launch vKVM**. Some CIMC versions show a vKVM certificate confirmation page before opening the viewer. Follow the link to the viewer once the certificate is accepted.
+
+The app automatically closes the Dojo debug panel when it appears on the management page or in the KVM viewer. CIMC hardware status and alerts remain visible.
 
 The app stores profiles and usernames locally. It prompts for a SOCKS5 proxy password when a proxy username is set. Passwords are entered for each connection and the app does not store them in Keychain.
 
